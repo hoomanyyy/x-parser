@@ -50,13 +50,15 @@ sql_text() {
 }
 
 create_tables() {
-    local pass
-    pass=$(sql_text "$DB_PASS")
-
     log "creating tables if not exist..."
 
-
-    mariadb --host="$DB_HOST" --port="$DB_PORT" --user="$DB_USER" --password="$DB_PASS" "$DB_NAME" <<SQL
+    mariadb \
+      --host="$DB_HOST" \
+      --port="$DB_PORT" \
+      --user="$DB_USER" \
+      --password="$DB_PASS" \
+      --ssl=0 \
+      "$DB_NAME" <<SQL
 CREATE TABLE IF NOT EXISTS users (
     id INT AUTO_INCREMENT PRIMARY KEY,
     telegram_user_id BIGINT NOT NULL UNIQUE,
