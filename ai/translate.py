@@ -1,11 +1,19 @@
 import os
 import asyncio
+import logging
 from google import genai
 from dotenv import load_dotenv
 
 load_dotenv()
 
-client = genai.Client()
+logger = logging.getLogger(__name__)
+
+api_key = os.getenv("GOOGLE_API_KEY")
+if not api_key:
+    logger.warning("GOOGLE_API_KEY is not set. Translation will be disabled.")
+
+client = genai.Client(api_key=api_key) if api_key else None
+
 
 class Translator:
     def __init__(self, first_language="English", language_to="Persian"):
@@ -16,25 +24,30 @@ class Translator:
         if not text:
             return ""
 
-        prompt = f"""
-            1_you are an translator ai that translate languages
-            2_and dont do any extra thing
-            3_just translate languages
+        if client is None:
+            logger.warning("Gemini client is not configured")
+            return text
 
-            first_language: {self.first_language}
-            language_to: {self.language_to}
-            text: {text}
+        prompt = f"""You are a translator.
+Translate the following text to {self.language_to}.
+Do not explain anything. Only return the translation.
 
-            and remember if one text first_language was not first_language you should automatic detect language
-        """
+Text:
+{text}
+"""
 
         try:
             response = client.models.generate_content(
-                model="gemini-2.5-flash",
-                contents=prompt
+                model="gemini-2.0-flash",
+                contents=prompt,
             )
-            return response.text.strip() if response.text else text
-        except Exception:
+            result = (response.text or "").strip()
+            if not result:
+                logger.warning("Empty translation response")
+                return text
+            return result
+        except Exception as e:
+            logger.error("Translation failed: %s", e)
             return text
 
     async def translate_async(self, text):
