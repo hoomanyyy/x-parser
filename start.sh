@@ -58,24 +58,24 @@ create_tables() {
       --user="$DB_USER" \
       --password="$DB_PASS" \
       --ssl=0 \
-      "$DB_NAME" <<SQL
+      "$DB_NAME" <<'SQL'
 CREATE TABLE IF NOT EXISTS users (
     id INT AUTO_INCREMENT PRIMARY KEY,
     telegram_user_id BIGINT NOT NULL UNIQUE,
     chat_id BIGINT NOT NULL,
     username VARCHAR(255) NULL,
     first_name VARCHAR(255) NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE IF NOT EXISTS x_usernames (
     id INT AUTO_INCREMENT PRIMARY KEY,
     x_username VARCHAR(255) NOT NULL,
     user_id BIGINT NOT NULL,
     last_post_id VARCHAR(255) DEFAULT NULL,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP(),
+    created_at TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
     seen_ids TEXT DEFAULT NULL,
     UNIQUE KEY unique_user_username (user_id, x_username)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 SQL
 
     if [ $? -eq 0 ]; then
@@ -130,7 +130,6 @@ SQL
     create_tables
     log "embedded database is ready"
 }
-
 
 [ -n "${API_TOKEN:-}" ] || fail "API_TOKEN is not set"
 [ -n "${DB_PASS:-}" ] || fail "DB_PASS is not set"
